@@ -52,19 +52,19 @@
       }
       switch (indices[i]) {
         case a:
-          verticesKubus.push(0.0);
+          verticesKubus.push((a-2)*0.125);
           verticesKubus.push(0.0);
           break;
         case b:
-          verticesKubus.push(0.0);
+          verticesKubus.push((a-2)*0.125);
           verticesKubus.push(1.0);
           break;
         case c:
-          verticesKubus.push(1.0);
+          verticesKubus.push((a-1)*0.125);
           verticesKubus.push(1.0);
           break;
         case d:
-          verticesKubus.push(1.0);
+          verticesKubus.push((a-1)*0.125);
           verticesKubus.push(0.0);
           break;
       
@@ -120,11 +120,11 @@
 
     // Asynchronously load an image
     var image = new Image();
-    image.src = "images/txStainglass.bmp";
+    image.src = "images/tugas4_grafkom.jpg";
     image.addEventListener('load', function() {
       // Now that the image has loaded make copy it to the texture.
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       gl.generateMipmap(gl.TEXTURE_2D);
     });
   }
