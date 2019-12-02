@@ -6,6 +6,7 @@
   var xHurufLocation, x_huruf, yHurufLocation, y_huruf, zHurufLocation, z_huruf, x_arah, y_arah, z_arah;
   var dcLoc, dc, ddLoc, dd, acLoc, ac, nmLoc;
   var flag, flagUniformLocation, fFlag, fFlagUniformLocation;
+  var theta, phi;
 
   var verticesKubus = [];
   var cubePoints = [
@@ -132,17 +133,17 @@
   function animasiTranslasi(){
     if (x_huruf >= (0.8 - Math.abs(0.2 * 0.7 * scaleX))) x_arah = -1.0;
     else if (x_huruf <= (-0.8 + Math.abs(0.2 * 0.7 * scaleX))) x_arah = 1.0;
-    x_huruf += 0.004 * x_arah;
+    x_huruf += 0.009 * x_arah;
     gl.uniform1f(xHurufLocation, x_huruf);
     
     if (y_huruf >= (0.8 - (0.3 * 0.7))) y_arah = -1.0;
     else if (y_huruf <= (-0.8 + (0.3 * 0.7))) y_arah = 1.0;
-    y_huruf += 0.005 * y_arah;
+    y_huruf += 0.010 * y_arah;
     gl.uniform1f(yHurufLocation, y_huruf);
     
-    if (z_huruf >= 0.8) z_arah = -1.0;
-    else if (z_huruf <= -0.8) z_arah = 1.0;
-    z_huruf += 0.006 * z_arah;
+    if (z_huruf >= (0.8 - Math.abs(0.2 * 0.7 * scaleX))) z_arah = -1.0;
+    else if (z_huruf <= (-0.8 + Math.abs(0.2 * 0.7 * scaleX))) z_arah = 1.0;
+    z_huruf += 0.011 * z_arah;
     gl.uniform1f(zHurufLocation, z_huruf);
   }
 
@@ -166,7 +167,31 @@
       [0.0, 1.0, 0.0]  // ke mana arah atas kamera (vektor)
     );
     gl.uniformMatrix4fv(vmLoc, false, vm);
-    
+
+    // Interaksi mouse
+
+    if (!drag) {
+      dX *= AMORTIZATION, dY*=AMORTIZATION;
+      theta+=dX, phi+=dY;
+    }
+
+    mm[0] = 1, mm[1] = 0, mm[2] = 0,
+    mm[3] = 0,
+
+    mm[4] = 0, mm[5] = 1, mm[6] = 0,
+    mm[7] = 0,
+
+    mm[8] = 0, mm[9] = 0, mm[10] = 1,
+    mm[11] = 0,
+
+    mm[12] = 0, mm[13] = 0, mm[14] = 0,
+    mm[15] = 1;
+
+    glMatrix.mat4.translate(mm, mm, [0.0, 0.0, -2.0]);
+
+    rotateY(mm, theta);
+    rotateX(mm, phi);
+        
     var nKubus = initBuffersKubus(gl, verticesKubus);
     if(nKubus < 0){
       console.log('Failed to set the positions of the verticesKubus');
@@ -178,11 +203,13 @@
     gl.uniform1i(flagUniformLocation, flag);
     gl.uniform1i(fFlagUniformLocation, fFlag);
     gl.drawArrays(gl.TRIANGLES, 0, nKubus);
-            
+
     //animasi refleksi
     if (scaleX >= 1.0) melebar = -1.0;
     else if (scaleX <= -1.0) melebar = 1.0;
+    
     scaleX += 0.0056 * melebar;
+    
     gl.uniform1f(scaleXUniformLocation, scaleX);
 
     //animasi translasi
@@ -370,12 +397,6 @@
       console.log('Failed to get the storage location of vPosition');
       return -1;
     }
-    
-    // var vColor = gl.getAttribLocation(program, 'vColor');
-    // if (vColor < 0) {
-    //   console.log('Failed to get the storage location of vColor');
-    //   return -1;
-    // }
 
     var vNormal = gl.getAttribLocation(program, 'vNormal');
     if (vNormal < 0) {
@@ -398,15 +419,6 @@
       11 * Float32Array.BYTES_PER_ELEMENT, // ukuran byte tiap vertex (overall)
       0                                    // offset dari posisi elemen di array
     );
-    
-    // gl.vertexAttribPointer(
-    //   vColor,
-    //   3,
-    //   gl.FLOAT,
-    //   gl.FALSE,
-    //   11 * Float32Array.BYTES_PER_ELEMENT,
-    //   3 * Float32Array.BYTES_PER_ELEMENT
-    // );
 
     gl.vertexAttribPointer(
       vNormal,
@@ -427,7 +439,6 @@
     );
 
     gl.enableVertexAttribArray(vPosition);
-    // gl.enableVertexAttribArray(vColor);
     gl.enableVertexAttribArray(vNormal);
     gl.enableVertexAttribArray(vTexCoord);
   
@@ -451,7 +462,72 @@
     else if (event.keyCode == 40) camera.y -= 0.1;      // key Bawah
   }
   document.addEventListener('keydown', onKeyDown);
-  
+
+  /*================= Mouse events ======================*/
+
+  var AMORTIZATION = 0.56;
+  var drag = false;
+  var old_x, old_y;
+  var dX = 0, dY = 0;
+  theta = 0;
+  phi = 0;
+
+  var mouseDown = function(e) {
+    drag = true;
+    old_x = e.pageX, old_y = e.pageY;
+    e.preventDefault();
+    return false;
+  };
+
+  var mouseUp = function(e){
+    drag = false;
+  };
+
+  var mouseMove = function(e) {
+    if (!drag) return false;
+    dX = (e.pageX-old_x)*2*Math.PI/canvas.width,
+    dY = (e.pageY-old_y)*2*Math.PI/canvas.height;
+    theta+= dX;
+    phi+=dY;
+    old_x = e.pageX, old_y = e.pageY;
+    e.preventDefault();
+  };
+
+  document.addEventListener("mousedown", mouseDown, false);
+  document.addEventListener("mouseup", mouseUp, false);
+  document.addEventListener("mouseout", mouseUp, false);
+  document.addEventListener("mousemove", mouseMove, false);
+
+  /*=========================rotation================*/
+
+  function rotateX(m, angle) {
+    var c = Math.cos(angle);
+    var s = Math.sin(angle);
+    var mv1 = m[1], mv5 = m[5], mv9 = m[9];
+
+    m[1] = m[1]*c-m[2]*s;
+    m[5] = m[5]*c-m[6]*s;
+    m[9] = m[9]*c-m[10]*s;
+
+    m[2] = m[2]*c+mv1*s;
+    m[6] = m[6]*c+mv5*s;
+    m[10] = m[10]*c+mv9*s;
+  }
+
+  function rotateY(m, angle) {
+    var c = Math.cos(angle);
+    var s = Math.sin(angle);
+    var mv0 = m[0], mv4 = m[4], mv8 = m[8];
+
+    m[0] = c*m[0]+s*m[2];
+    m[4] = c*m[4]+s*m[6];
+    m[8] = c*m[8]+s*m[10];
+
+    m[2] = c*m[2]-s*mv0;
+    m[6] = c*m[6]-s*mv4;
+    m[10] = c*m[10]-s*mv8;
+  }
+
   //fungsi untuk meresize ukuran canvas agar square
   function resizer(){
     /**
