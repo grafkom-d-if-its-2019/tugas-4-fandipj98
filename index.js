@@ -5,7 +5,7 @@
   var thetaUniformLocation, theta, thetaSpeed, mmLoc, mm, vmLoc, vm, pmLoc, pm, camera, axis, x, y, z;
   var xHurufLocation, x_huruf, yHurufLocation, y_huruf, zHurufLocation, z_huruf, x_arah, y_arah, z_arah;
   var dcLoc, dc, ddLoc, dd, acLoc, ac, nmLoc;
-  var flag, flagUniformLocation, fFlag, fFlagUniformLocation;
+  var flag, flagUniformLocation, fFlagUniformLocation;
   var theta, phi;
 
   var verticesKubus = [];
@@ -128,195 +128,6 @@
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       gl.generateMipmap(gl.TEXTURE_2D);
     });
-  }
-
-  function animasiTranslasi(){
-    if (x_huruf >= (0.8 - Math.abs(0.2 * 0.7 * scaleX))) x_arah = -1.0;
-    else if (x_huruf <= (-0.8 + Math.abs(0.2 * 0.7 * scaleX))) x_arah = 1.0;
-    x_huruf += 0.009 * x_arah;
-    gl.uniform1f(xHurufLocation, x_huruf);
-    
-    if (y_huruf >= (0.8 - (0.3 * 0.7))) y_arah = -1.0;
-    else if (y_huruf <= (-0.8 + (0.3 * 0.7))) y_arah = 1.0;
-    y_huruf += 0.010 * y_arah;
-    gl.uniform1f(yHurufLocation, y_huruf);
-    
-    if (z_huruf >= (0.8 - Math.abs(0.2 * 0.7 * scaleX))) z_arah = -1.0;
-    else if (z_huruf <= (-0.8 + Math.abs(0.2 * 0.7 * scaleX))) z_arah = 1.0;
-    z_huruf += 0.011 * z_arah;
-    gl.uniform1f(zHurufLocation, z_huruf);
-  }
-
-  function render(){
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  
-    theta += thetaSpeed;
-    if (axis[z]) glMatrix.mat4.rotateZ(mm, mm, thetaSpeed);
-    if (axis[y]) glMatrix.mat4.rotateY(mm, mm, thetaSpeed);
-    if (axis[x]) glMatrix.mat4.rotateX(mm, mm, thetaSpeed);
-    gl.uniformMatrix4fv(mmLoc, false, mm);
-
-    // Perhitungan modelMatrix untuk vektor normal
-    var nm = glMatrix.mat3.create();
-    glMatrix.mat3.normalFromMat4(nm, mm);
-    gl.uniformMatrix3fv(nmLoc, false, nm);
-
-    glMatrix.mat4.lookAt(vm,
-      [camera.x, camera.y, camera.z], // di mana posisi kamera (posisi)
-      [0.0, 0.0, -2.0], // ke mana kamera menghadap (vektor)
-      [0.0, 1.0, 0.0]  // ke mana arah atas kamera (vektor)
-    );
-    gl.uniformMatrix4fv(vmLoc, false, vm);
-
-    // Interaksi mouse
-
-    if (!drag) {
-      dX *= AMORTIZATION, dY*=AMORTIZATION;
-      theta+=dX, phi+=dY;
-    }
-
-    mm[0] = 1, mm[1] = 0, mm[2] = 0,
-    mm[3] = 0,
-
-    mm[4] = 0, mm[5] = 1, mm[6] = 0,
-    mm[7] = 0,
-
-    mm[8] = 0, mm[9] = 0, mm[10] = 1,
-    mm[11] = 0,
-
-    mm[12] = 0, mm[13] = 0, mm[14] = 0,
-    mm[15] = 1;
-
-    glMatrix.mat4.translate(mm, mm, [0.0, 0.0, -2.0]);
-
-    rotateY(mm, theta);
-    rotateX(mm, phi);
-        
-    var nKubus = initBuffersKubus(gl, verticesKubus);
-    if(nKubus < 0){
-      console.log('Failed to set the positions of the verticesKubus');
-      return;
-    }
-
-    fFlag = 0;
-    flag = 0;
-    gl.uniform1i(flagUniformLocation, flag);
-    gl.uniform1i(fFlagUniformLocation, fFlag);
-    gl.drawArrays(gl.TRIANGLES, 0, nKubus);
-
-    //animasi refleksi
-    if (scaleX >= 1.0) melebar = -1.0;
-    else if (scaleX <= -1.0) melebar = 1.0;
-    
-    scaleX += 0.0056 * melebar;
-    
-    gl.uniform1f(scaleXUniformLocation, scaleX);
-
-    //animasi translasi
-    animasiTranslasi();
-
-    // arah cahaya berdasarkan koordinat huruf
-    dd = glMatrix.vec3.fromValues(x_huruf, y_huruf, z_huruf);  // xyz
-    gl.uniform3fv(ddLoc, dd);
-
-    var nHuruf = initBuffers(gl,verticesHuruf);
-    
-    if(nHuruf < 0){
-      console.log('Failed to set the positions of the verticesHuruf');
-      return;
-    }
-
-    fFlag = 1;
-    flag = 1;
-    gl.uniform1i(flagUniformLocation, flag);
-    gl.uniform1i(fFlagUniformLocation, fFlag);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, nHuruf);
-
-    requestAnimationFrame(render);
-  }
-
-  function draw(){
-
-    // Membuat sambungan untuk uniform
-    thetaUniformLocation = gl.getUniformLocation(program, 'theta');
-    theta = 0;
-    thetaSpeed = 0.0;
-    axis = [true, true, true];
-    x = 0;
-    y = 1;
-    z = 2;
-
-    // Definisi untuk matriks model
-    mmLoc = gl.getUniformLocation(program, 'modelMatrix');
-    mm = glMatrix.mat4.create();
-    glMatrix.mat4.translate(mm, mm, [0.0, 0.0, -2.0]);
-
-    // Definisi untuk matrix view dan projection
-    vmLoc = gl.getUniformLocation(program, 'viewMatrix');
-    vm = glMatrix.mat4.create();
-    pmLoc = gl.getUniformLocation(program, 'projectionMatrix');
-    pm = glMatrix.mat4.create();
-
-    camera = {x: 0.0, y: 0.0, z:0.0};
-    glMatrix.mat4.perspective(pm,
-      glMatrix.glMatrix.toRadian(90), // fovy dalam radian
-      canvas.width/canvas.height,     // aspect ratio
-      0.5,  // near
-      10.0, // far  
-    );
-    gl.uniformMatrix4fv(pmLoc, false, pm);
-
-    xHurufLocation = gl.getUniformLocation(program, 'x_huruf');
-    x_huruf = 0.0;
-    gl.uniform1f(xHurufLocation, x_huruf);
-
-    yHurufLocation = gl.getUniformLocation(program, 'y_huruf');
-    y_huruf = 0.0;
-    gl.uniform1f(yHurufLocation, y_huruf);
-
-    zHurufLocation = gl.getUniformLocation(program, 'z_huruf');
-    z_huruf = 0.0;
-    gl.uniform1f(zHurufLocation, z_huruf);
-    
-    scaleXUniformLocation = gl.getUniformLocation(program, 'scaleX');
-    scaleX = 1.0;
-    gl.uniform1f(scaleXUniformLocation, scaleX);
-
-    scaleYUniformLocation = gl.getUniformLocation(program, 'scaleY');
-    scaleY = 1.0;
-    gl.uniform1f(scaleYUniformLocation, scaleY);
-
-    flagUniformLocation = gl.getUniformLocation(program, 'flag');
-    flag = 0;
-    gl.uniform1i(flagUniformLocation, flag);
-
-    fFlagUniformLocation = gl.getUniformLocation(program, 'fFlag');
-    fFlag = 0;
-    gl.uniform1i(fFlagUniformLocation, fFlag);
-
-    melebar = 1.0;
-    x_arah = 1.0;
-    y_arah = 1.0;
-    z_arah = 1.0;
-
-    // Uniform untuk pencahayaan
-    dcLoc = gl.getUniformLocation(program, 'diffuseColor');
-    dc = glMatrix.vec3.fromValues(1.0, 1.0, 1.0);  // rgb
-    gl.uniform3fv(dcLoc, dc);
-    
-    ddLoc = gl.getUniformLocation(program, 'diffusePosition');
-
-    acLoc = gl.getUniformLocation(program, 'ambientColor');
-    ac = glMatrix.vec3.fromValues(0.17, 0.40, 0.56);
-    gl.uniform3fv(acLoc, ac);
-
-    // Uniform untuk modelMatrix vektor normal
-    nmLoc = gl.getUniformLocation(program, 'normalMatrix');
-
-    gl.clearColor(10/255, 50/255, 50/255, 1.0);
-    gl.enable(gl.DEPTH_TEST);
-
-    render();
   }
 
   function initBuffers(gl,vertices) {
@@ -445,24 +256,6 @@
     return n;
   }
 
-  function onKeyDown(event) {
-    if (event.keyCode == 189) thetaSpeed -= 0.01;       // key '-' google chrome
-    else if (event.keyCode == 187) thetaSpeed += 0.01;  // key '='
-    // if (event.keyCode == 173) thetaSpeed -= 0.01;       // key '-' firefox mozilla
-    // else if (event.keyCode == 61) thetaSpeed += 0.01;  // key '='
-    else if (event.keyCode == 48) thetaSpeed = 0;       // key '0'
-    if (event.keyCode == 88) axis[x] = !axis[x];        // key 'x'
-    if (event.keyCode == 89) axis[y] = !axis[y];        // key 'y'
-    if (event.keyCode == 90) axis[z] = !axis[z];        // key 'z'
-    if (event.keyCode == 190) camera.z -= 0.1;          // key '/'
-    else if (event.keyCode == 191) camera.z += 0.1;     // key '.'
-    if (event.keyCode == 37) camera.x -= 0.1;           // key kiri
-    else if (event.keyCode == 39) camera.x += 0.1;      // key kanan
-    if (event.keyCode == 38) camera.y += 0.1;           // key atas 
-    else if (event.keyCode == 40) camera.y -= 0.1;      // key Bawah
-  }
-  document.addEventListener('keydown', onKeyDown);
-
   /*================= Mouse events ======================*/
 
   var AMORTIZATION = 0.56;
@@ -527,6 +320,201 @@
     m[6] = c*m[6]-s*mv4;
     m[10] = c*m[10]-s*mv8;
   }
+
+  function animasiTranslasi(){
+    if (x_huruf >= (0.8 - Math.abs(0.2 * 0.7 * scaleX))) x_arah = -1.0;
+    else if (x_huruf <= (-0.8 + Math.abs(0.2 * 0.7 * scaleX))) x_arah = 1.0;
+    x_huruf += 0.009 * x_arah;
+    gl.uniform1f(xHurufLocation, x_huruf);
+    
+    if (y_huruf >= (0.8 - (0.3 * 0.7))) y_arah = -1.0;
+    else if (y_huruf <= (-0.8 + (0.3 * 0.7))) y_arah = 1.0;
+    y_huruf += 0.010 * y_arah;
+    gl.uniform1f(yHurufLocation, y_huruf);
+    
+    if (z_huruf >= (0.8 - Math.abs(0.2 * 0.7 * scaleX))) z_arah = -1.0;
+    else if (z_huruf <= (-0.8 + Math.abs(0.2 * 0.7 * scaleX))) z_arah = 1.0;
+    z_huruf += 0.011 * z_arah;
+    gl.uniform1f(zHurufLocation, z_huruf);
+  }
+
+  function render(){
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  
+    theta += thetaSpeed;
+
+    // Perhitungan modelMatrix untuk vektor normal
+    var nm = glMatrix.mat3.create();
+    glMatrix.mat3.normalFromMat4(nm, mm);
+    gl.uniformMatrix3fv(nmLoc, false, nm);
+
+    glMatrix.mat4.lookAt(vm,
+      [camera.x, camera.y, camera.z], // di mana posisi kamera (posisi)
+      [0.0, 0.0, -2.0], // ke mana kamera menghadap (vektor)
+      [0.0, 1.0, 0.0]  // ke mana arah atas kamera (vektor)
+    );
+    gl.uniformMatrix4fv(vmLoc, false, vm);
+
+    // Interaksi mouse
+
+    if (!drag) {
+      dX *= AMORTIZATION, dY*=AMORTIZATION;
+      theta+=dX, phi+=dY;
+    }
+
+    mm[0] = 1, mm[1] = 0, mm[2] = 0,
+    mm[3] = 0,
+
+    mm[4] = 0, mm[5] = 1, mm[6] = 0,
+    mm[7] = 0,
+
+    mm[8] = 0, mm[9] = 0, mm[10] = 1,
+    mm[11] = 0,
+
+    mm[12] = 0, mm[13] = 0, mm[14] = 0,
+    mm[15] = 1;
+
+    glMatrix.mat4.translate(mm, mm, [0.0, 0.0, -2.0]);
+
+    rotateY(mm, theta);
+    rotateX(mm, phi);
+        
+    gl.uniformMatrix4fv(mmLoc, false, mm);
+
+    var nKubus = initBuffersKubus(gl, verticesKubus);
+    if(nKubus < 0){
+      console.log('Failed to set the positions of the verticesKubus');
+      return;
+    }
+
+    flag = 0;
+    gl.uniform1i(flagUniformLocation, flag);
+    gl.uniform1i(fFlagUniformLocation, flag);
+    gl.drawArrays(gl.TRIANGLES, 0, nKubus);
+
+    //animasi refleksi
+    if (scaleX >= 1.0) melebar = -1.0;
+    else if (scaleX <= -1.0) melebar = 1.0;
+    
+    scaleX += 0.0056 * melebar;
+    
+    gl.uniform1f(scaleXUniformLocation, scaleX);
+
+    //animasi translasi
+    animasiTranslasi();
+
+    // arah cahaya berdasarkan koordinat huruf
+    dd = glMatrix.vec3.fromValues(x_huruf, y_huruf, z_huruf);  // xyz
+    gl.uniform3fv(ddLoc, dd);
+
+    var nHuruf = initBuffers(gl,verticesHuruf);
+    
+    if(nHuruf < 0){
+      console.log('Failed to set the positions of the verticesHuruf');
+      return;
+    }
+
+    flag = 1;
+    gl.uniform1i(flagUniformLocation, flag);
+    gl.uniform1i(fFlagUniformLocation, flag);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, nHuruf);
+
+    requestAnimationFrame(render);
+  }
+
+  function draw(){
+
+    // Membuat sambungan untuk uniform
+    thetaUniformLocation = gl.getUniformLocation(program, 'theta');
+    theta = 0;
+    thetaSpeed = 0.0;
+
+    // Definisi untuk matriks model
+    mmLoc = gl.getUniformLocation(program, 'modelMatrix');
+    mm = glMatrix.mat4.create();
+    glMatrix.mat4.translate(mm, mm, [0.0, 0.0, -2.0]);
+
+    // Definisi untuk matrix view dan projection
+    vmLoc = gl.getUniformLocation(program, 'viewMatrix');
+    vm = glMatrix.mat4.create();
+    pmLoc = gl.getUniformLocation(program, 'projectionMatrix');
+    pm = glMatrix.mat4.create();
+
+    camera = {x: 0.0, y: 0.0, z:0.0};
+    glMatrix.mat4.perspective(pm,
+      glMatrix.glMatrix.toRadian(90), // fovy dalam radian
+      canvas.width/canvas.height,     // aspect ratio
+      0.5,  // near
+      10.0, // far  
+    );
+    gl.uniformMatrix4fv(pmLoc, false, pm);
+
+    xHurufLocation = gl.getUniformLocation(program, 'x_huruf');
+    x_huruf = 0.0;
+    gl.uniform1f(xHurufLocation, x_huruf);
+
+    yHurufLocation = gl.getUniformLocation(program, 'y_huruf');
+    y_huruf = 0.0;
+    gl.uniform1f(yHurufLocation, y_huruf);
+
+    zHurufLocation = gl.getUniformLocation(program, 'z_huruf');
+    z_huruf = 0.0;
+    gl.uniform1f(zHurufLocation, z_huruf);
+    
+    scaleXUniformLocation = gl.getUniformLocation(program, 'scaleX');
+    scaleX = 1.0;
+    gl.uniform1f(scaleXUniformLocation, scaleX);
+
+    scaleYUniformLocation = gl.getUniformLocation(program, 'scaleY');
+    scaleY = 1.0;
+    gl.uniform1f(scaleYUniformLocation, scaleY);
+
+    flagUniformLocation = gl.getUniformLocation(program, 'flag');
+    flag = 0;
+    gl.uniform1i(flagUniformLocation, flag);
+
+    fFlagUniformLocation = gl.getUniformLocation(program, 'fFlag');
+    gl.uniform1i(fFlagUniformLocation, flag);
+
+    melebar = 1.0;
+    x_arah = 1.0;
+    y_arah = 1.0;
+    z_arah = 1.0;
+
+    // Uniform untuk pencahayaan
+    dcLoc = gl.getUniformLocation(program, 'diffuseColor');
+    dc = glMatrix.vec3.fromValues(1.0, 1.0, 1.0);  // rgb
+    gl.uniform3fv(dcLoc, dc);
+    
+    ddLoc = gl.getUniformLocation(program, 'diffusePosition');
+
+    acLoc = gl.getUniformLocation(program, 'ambientColor');
+    ac = glMatrix.vec3.fromValues(0.17, 0.40, 0.56);
+    gl.uniform3fv(acLoc, ac);
+
+    // Uniform untuk modelMatrix vektor normal
+    nmLoc = gl.getUniformLocation(program, 'normalMatrix');
+
+    gl.clearColor(10/255, 50/255, 50/255, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+
+    render();
+  }
+
+  function onKeyDown(event) {
+    if (event.keyCode == 83) thetaSpeed -= 0.01;       // key 's' google chrome
+    else if (event.keyCode == 87) thetaSpeed += 0.01;  // key 'w'
+    // if (event.keyCode == 173) thetaSpeed -= 0.01;       // key '-' firefox mozilla
+    // else if (event.keyCode == 61) thetaSpeed += 0.01;  // key '='
+    else if (event.keyCode == 48) thetaSpeed = 0;       // key '0'
+    if (event.keyCode == 190) camera.z -= 0.1;          // key '/'
+    else if (event.keyCode == 191) camera.z += 0.1;     // key '.'
+    if (event.keyCode == 37) camera.x -= 0.1;           // key kiri
+    else if (event.keyCode == 39) camera.x += 0.1;      // key kanan
+    if (event.keyCode == 38) camera.y += 0.1;           // key atas 
+    else if (event.keyCode == 40) camera.y -= 0.1;      // key Bawah
+  }
+  document.addEventListener('keydown', onKeyDown);
 
   //fungsi untuk meresize ukuran canvas agar square
   function resizer(){
