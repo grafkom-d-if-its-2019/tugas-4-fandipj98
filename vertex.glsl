@@ -10,9 +10,7 @@ varying vec3 fColor;
 varying vec3 fPosition;
 varying vec2 fTexCoord;
 
-uniform float theta;
 uniform float scaleX;
-uniform float scaleY;
 uniform float x_huruf;
 uniform float y_huruf;
 uniform float z_huruf;
@@ -28,7 +26,7 @@ void main() {
 
   mat4 matrixSkalasi = mat4(
     scaleX, 0.0, 0.0, 0.0,
-    0.0, scaleY, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 1.0, 0.0,
     0.0, 0.0, 0.0, 1.0
   );

@@ -1,8 +1,8 @@
 (function() {
 
   var canvas, gl, program;
-  var scaleXUniformLocation, scaleX, scaleYUniformLocation, scaleY, melebar;
-  var thetaUniformLocation, theta, thetaSpeed, mmLoc, mm, vmLoc, vm, pmLoc, pm, camera, axis, x, y, z;
+  var scaleXUniformLocation, scaleX, melebar;
+  var theta, thetaSpeed, mmLoc, mm, vmLoc, vm, pmLoc, pm, camera;
   var xHurufLocation, x_huruf, yHurufLocation, y_huruf, zHurufLocation, z_huruf, x_arah, y_arah, z_arah;
   var dcLoc, dc, ddLoc, dd, acLoc, ac, nmLoc;
   var flag, flagUniformLocation, fFlagUniformLocation;
@@ -425,7 +425,7 @@
   function draw(){
 
     // Membuat sambungan untuk uniform
-    thetaUniformLocation = gl.getUniformLocation(program, 'theta');
+    // thetaUniformLocation = gl.getUniformLocation(program, 'theta');
     theta = 0;
     thetaSpeed = 0.0;
 
@@ -464,10 +464,6 @@
     scaleXUniformLocation = gl.getUniformLocation(program, 'scaleX');
     scaleX = 1.0;
     gl.uniform1f(scaleXUniformLocation, scaleX);
-
-    scaleYUniformLocation = gl.getUniformLocation(program, 'scaleY');
-    scaleY = 1.0;
-    gl.uniform1f(scaleYUniformLocation, scaleY);
 
     flagUniformLocation = gl.getUniformLocation(program, 'flag');
     flag = 0;
