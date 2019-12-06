@@ -4,7 +4,7 @@
   var scaleXUniformLocation, scaleX, melebar;
   var theta, thetaSpeed, mmLoc, mm, vmLoc, vm, pmLoc, pm, camera;
   var xHurufLocation, x_huruf, yHurufLocation, y_huruf, zHurufLocation, z_huruf, x_arah, y_arah, z_arah;
-  var dcLoc, dc, ddLoc, dd, acLoc, ac, nmLoc;
+  var dcLoc, dc, ddLoc, dd, acLoc, ac, nmLoc, vNormal, vTexCoord, vColor;
   var flag, flagUniformLocation, fFlagUniformLocation;
   var theta, phi;
 
@@ -154,7 +154,7 @@
       return -1;
     }
     
-    var vColor = gl.getAttribLocation(program, 'vColor');
+    vColor = gl.getAttribLocation(program, 'vColor');
     if (vColor < 0) {
       console.log('Failed to get the storage location of vColor');
       return -1;
@@ -209,13 +209,13 @@
       return -1;
     }
 
-    var vNormal = gl.getAttribLocation(program, 'vNormal');
+    vNormal = gl.getAttribLocation(program, 'vNormal');
     if (vNormal < 0) {
       console.log('Failed to get the storage location of vNormal');
       return -1;
     }
 
-    var vTexCoord = gl.getAttribLocation(program, 'vTexCoord');
+    vTexCoord = gl.getAttribLocation(program, 'vTexCoord');
     if (vTexCoord < 0) {
       console.log('Failed to get the storage location of vTexCoord');
       return -1;
@@ -392,6 +392,9 @@
     gl.uniform1i(fFlagUniformLocation, flag);
     gl.drawArrays(gl.TRIANGLES, 0, nKubus);
 
+    gl.disableVertexAttribArray(vNormal);
+    gl.disableVertexAttribArray(vTexCoord);
+
     //animasi refleksi
     if (scaleX >= 1.0) melebar = -1.0;
     else if (scaleX <= -1.0) melebar = 1.0;
@@ -418,6 +421,7 @@
     gl.uniform1i(flagUniformLocation, flag);
     gl.uniform1i(fFlagUniformLocation, flag);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, nHuruf);
+    gl.disableVertexAttribArray(vColor);
 
     requestAnimationFrame(render);
   }
