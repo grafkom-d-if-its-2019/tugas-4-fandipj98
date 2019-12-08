@@ -324,17 +324,17 @@
   function animasiTranslasi(){
     if (x_huruf >= (0.8 - Math.abs(0.2 * 0.7 * scaleX))) x_arah = -1.0;
     else if (x_huruf <= (-0.8 + Math.abs(0.2 * 0.7 * scaleX))) x_arah = 1.0;
-    x_huruf += 0.009 * x_arah;
+    x_huruf += 0.008 * x_arah;
     gl.uniform1f(xHurufLocation, x_huruf);
     
     if (y_huruf >= (0.8 - (0.3 * 0.7))) y_arah = -1.0;
     else if (y_huruf <= (-0.8 + (0.3 * 0.7))) y_arah = 1.0;
-    y_huruf += 0.010 * y_arah;
+    y_huruf += 0.009 * y_arah;
     gl.uniform1f(yHurufLocation, y_huruf);
     
     if (z_huruf >= (0.8 - Math.abs(0.2 * 0.7 * scaleX))) z_arah = -1.0;
     else if (z_huruf <= (-0.8 + Math.abs(0.2 * 0.7 * scaleX))) z_arah = 1.0;
-    z_huruf += 0.011 * z_arah;
+    z_huruf += 0.010 * z_arah;
     gl.uniform1f(zHurufLocation, z_huruf);
   }
 
